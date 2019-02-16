@@ -1,0 +1,454 @@
+<html>
+	<head>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<style>
+			body{
+				background-color:#ADD8E6;
+			}
+		</style>
+	</head>
+	<body>
+		<p id="gameoflife">
+
+		</p>
+		<input type="button" value="play!" id="play"/>
+		<input type="button" value="reset" id="reset"/>
+		<input type="button" value="1" id="draw_one"/>
+		<input type="button" value="2" id="draw_two"/>
+		<input type="button" value="3" id="draw_three"/>
+		</br></br>
+		La règle est simple :
+	</br>
+		-une cellule reste en vie si elle a 2 ou 3 voisins en vie sinon elle meurt
+	</br>
+		-une cellule morte devient vivante si elle a 3 voisins vivants
+		<!-- Longueur: <input type="text" value="10" id="long"/></br>
+		Largeur: <input type="text" value="10" id="larg"/> 
+		<input type="button" value="change size" id="change_size"/>-->
+	</body>
+	<script>
+	var longueur=15;
+	var largeur=15;
+	var columns="";
+	var lines="";
+	var indice_column=0;
+	var min_to_stay_alive = 2;
+	var max_to_stay_alive = 3;
+	var min_to_get_alive = 3;
+	var max_to_get_alive = 3; 
+	function generate_game(){
+		indice_column=0;
+		for(i=0;i<longueur;i++){
+			for(j=0;j<largeur;j++){
+				columns+="<div id="+indice_column+" onclick=activate_deactivate_cell("+indice_column+") style='width:15px;height:15px;border-style:solid;border-width:1px;float:left;margin-left:1px; background-color:white;'></div>";
+				indice_column++;
+			}
+			columns+="</br>";
+			lines+=columns;
+			columns="";
+		}
+		$(document).ready(function(){
+		    $("#gameoflife").append(lines)
+		});
+	}
+	function activate_cell(indice){
+		    $('#'+indice).css('background-color', 'black');
+	}
+	function deactivate_cell(indice){
+		    $('#'+indice).css('background-color', 'white');
+	}
+	function activate_deactivate_cell(indice){
+		if($('#'+indice).css('background-color') =='rgb(0, 0, 0)')
+		{
+			deactivate_cell(indice);
+		}
+		else if( $('#'+indice).css('background-color') == 'rgb(255, 255, 255)' )
+		{
+			activate_cell(indice);
+		}
+	}
+	function is_active_cell(indice){
+		if($('#'+indice).css('background-color') =='rgb(0, 0, 0)')
+		{
+		   return true;
+		}
+		else if( $('#'+indice).css('background-color') == 'rgb(255, 255, 255)' ){
+			return false;
+		}else{
+			return false;	
+		}
+	}
+	/*
+		Il faut une fonction qui compte le nombre de cellules actives et inactive d'un point i
+		-cas 'normal'
+		-cas bord (G, D, H, B)
+		-cas coin (HG, HD, BD, BG)
+		cette fonction doit retourner une array de l'état n+1
+	*/
+	function count_active_cells(line, column, indice){
+		//cas bord haut
+		var cmpt=0;
+		if(line==0){
+			//cas HG
+			if(column==0){
+				if(is_active_cell(1)){
+					cmpt++;
+				}
+				if(is_active_cell(longueur)){
+					cmpt++;
+				}
+				if(is_active_cell(longueur+1)){
+					cmpt++;
+				}
+			}//cas HD
+			else if(column==longueur-1){
+				if(is_active_cell(longueur-2)){
+					cmpt++;
+				}
+				if(is_active_cell(longueur+longueur-2)){
+					cmpt++;
+				}
+				if(is_active_cell(longueur+longueur-1)){
+					cmpt++;
+				}
+			}//sinon
+			else{
+				if(is_active_cell(indice-1)){
+					cmpt++;
+				}
+				if(is_active_cell(indice+1)){
+					cmpt++;
+				}
+				if(is_active_cell(indice+longueur-1)){
+					cmpt++;
+				}
+				if(is_active_cell(indice+longueur)){
+					cmpt++;
+				}
+				if(is_active_cell(indice+longueur+1)){
+					cmpt++;
+				}
+			}
+		}//cas bord bas
+		else if(line==largeur-1){
+			//cas BG
+			if(column==0){
+				if(is_active_cell(indice-longueur)){
+					cmpt++;
+				}
+				if(is_active_cell(indice-longueur+1)){
+					cmpt++;
+				}
+				if(is_active_cell(indice+1)){
+					cmpt++;
+				}
+			}//cas BD
+			else if(column==longueur-1){
+				if(is_active_cell(indice-1)){
+					cmpt++;
+				}
+				if(is_active_cell(indice-longueur)){
+					cmpt++;
+				}
+				if(is_active_cell(indice-longueur-1)){
+					cmpt++;
+				}
+			}//sinon
+			else{
+				if(is_active_cell(indice-1)){
+					cmpt++;
+				}
+				if(is_active_cell(indice+1)){
+					cmpt++;
+				}
+				if(is_active_cell(indice-longueur+1)){
+					cmpt++;
+				}
+				if(is_active_cell(indice-longueur)){
+					cmpt++;
+				}
+				if(is_active_cell(indice-longueur-1)){
+					cmpt++;
+				}
+			}
+		}//cas bord gauche
+		else if(column==0){
+			if(is_active_cell(indice-longueur)){
+				cmpt++;
+			}
+			if(is_active_cell(indice-longueur+1)){
+				cmpt++;
+			}
+			if(is_active_cell(indice+1)){
+				cmpt++;
+			}
+			if(is_active_cell(indice+longueur)){
+				cmpt++;
+			}
+			if(is_active_cell(indice+longueur+1)){
+				cmpt++;
+			}
+		}//cas bord droite
+		else if(column==longueur-1){
+			if(is_active_cell(indice-longueur)){
+				cmpt++;
+			}
+			if(is_active_cell(indice-longueur-1)){
+				cmpt++;
+			}
+			if(is_active_cell(indice-1)){
+				cmpt++;
+			}
+			if(is_active_cell(indice+longueur-1)){
+				cmpt++;
+			}
+			if(is_active_cell(indice+longueur+1)){
+				cmpt++;
+			}
+		}//tous les autres cas
+		else{
+			if(is_active_cell(indice-longueur-1)){
+				cmpt++;
+			}
+			if(is_active_cell(indice-longueur)){
+				cmpt++;
+			}
+			if(is_active_cell(indice-longueur+1)){
+				cmpt++;
+			}
+			if(is_active_cell(indice-1)){
+				cmpt++;
+			}
+			if(is_active_cell(indice+1)){
+				cmpt++;
+			}
+			if(is_active_cell(indice+longueur-1)){
+				cmpt++;
+			}
+			if(is_active_cell(indice+longueur)){
+				cmpt++;
+			}
+			if(is_active_cell(indice+longueur+1)){
+				cmpt++;
+			}
+		}
+		return cmpt;
+	}
+	function construct_array(){
+		var game_two_dim = [];
+		indice=0;
+		for(i=0;i<(longueur);i++){
+			var game_line = [];
+			for(j=0;j<(largeur);j++){
+				//si la case est vivante on met un 1
+				if(is_active_cell(indice)){
+					game_line.push(1);
+				}//sinon on met un 0
+				else{
+					game_line.push(0);
+				}
+				indice++;
+			}
+			game_two_dim.push(game_line);
+		}
+		return game_two_dim;
+	}
+	function array_n_plus_one(two_dim_array){
+		var game_two_dim = [];
+		var indice = 0;
+		for(j=0;j<two_dim_array.length;j++){
+			var game_line = [];
+			for(i=0;i<two_dim_array[0].length;i++){
+				// i = ligne j = colonne
+				nb_active_cells = count_active_cells(j, i, indice);//
+				//alert(nb_active_cells);
+				//nb_active_cells = 0;
+				console.log(nb_active_cells);
+				if(is_active_cell(indice)){
+					if((nb_active_cells<min_to_stay_alive) || (nb_active_cells>max_to_stay_alive)){
+						//mettre un 0 dans l'array
+						game_line.push(0);
+					}
+					else{
+						//mettre un 1 dans l'array
+						game_line.push(1);
+					}
+				}
+				else{
+					if((nb_active_cells>=min_to_get_alive) && (nb_active_cells<=max_to_get_alive)){
+						//mettre un 1 dans l'array
+						game_line.push(1);
+					}else{
+						game_line.push(0);
+					}
+				}
+				indice++;
+			}
+			game_two_dim.push(game_line);
+		}
+		//console.log(game_two_dim);
+		return game_two_dim;
+	}
+	/*
+		Il faut une fonction qui prend en parametre l'array n+1 et la dessine
+	*/
+	function draw_array_n_plus_one(two_dim_array){
+		var indice=0;
+		for(j=0;j<two_dim_array.length;j++){
+			for(i=0;i<two_dim_array[0].length;i++){
+				var n_plus_one_cell = two_dim_array[j][i];
+				//console.log(n_plus_one_cell);
+				//alert(n_plus_one_cell);
+				if(n_plus_one_cell==1){
+					activate_cell(indice);
+				}else{
+					deactivate_cell(indice);
+				}
+				indice++;
+			}
+		}
+	}
+	function play(){
+		var two_dim_array = construct_array();
+		var array_n_plus_onee = array_n_plus_one(two_dim_array);
+		draw_array_n_plus_one(array_n_plus_onee);
+	}
+	function reset(){
+		var tab=[];
+		for(j=0;j<largeur;j++){
+			var temp_tab=[];
+			for(i=0;i<longueur;i++){
+				temp_tab.push(0);
+			}
+			tab.push(temp_tab);
+		}
+		draw_array_n_plus_one(tab);
+	}
+	function draw_one(){
+		reset();
+		activate_deactivate_cell((3*longueur)+7);
+		activate_deactivate_cell((4*longueur)+7);
+		activate_deactivate_cell((5*longueur)+7);
+
+		activate_deactivate_cell((9*longueur)+7);
+		activate_deactivate_cell((10*longueur)+7);
+		activate_deactivate_cell((11*longueur)+7);
+
+
+		activate_deactivate_cell((7*longueur)+3);
+		activate_deactivate_cell((7*longueur)+4);
+		activate_deactivate_cell((7*longueur)+5);
+
+		activate_deactivate_cell((7*longueur)+9);
+		activate_deactivate_cell((7*longueur)+10);
+		activate_deactivate_cell((7*longueur)+11);
+	}
+	function draw_two(){
+		reset();
+
+		activate_deactivate_cell((4*longueur)+6);
+		activate_deactivate_cell((4*longueur)+7);
+		activate_deactivate_cell((4*longueur)+8);
+		activate_deactivate_cell((4*longueur)+9);
+
+		activate_deactivate_cell((7*longueur)+6);
+		activate_deactivate_cell((8*longueur)+6);
+		activate_deactivate_cell((9*longueur)+6);
+
+		activate_deactivate_cell((7*longueur)+9);
+		activate_deactivate_cell((8*longueur)+9);
+		activate_deactivate_cell((9*longueur)+9);
+	}
+	function draw_three(){
+		reset();
+		activate_deactivate_cell((0*longueur)+8);
+		activate_deactivate_cell((0*longueur)+9);
+		activate_deactivate_cell((1*longueur)+8);
+		activate_deactivate_cell((1*longueur)+9);
+
+		activate_deactivate_cell((3*longueur)+6);
+		activate_deactivate_cell((3*longueur)+7);
+		activate_deactivate_cell((3*longueur)+8);
+		activate_deactivate_cell((3*longueur)+9);
+
+
+		activate_deactivate_cell((8*longueur)+6);
+		activate_deactivate_cell((8*longueur)+7);
+		activate_deactivate_cell((8*longueur)+8);
+		activate_deactivate_cell((8*longueur)+9);
+
+
+		activate_deactivate_cell((4*longueur)+10);
+		activate_deactivate_cell((5*longueur)+10);
+		activate_deactivate_cell((6*longueur)+10);
+		activate_deactivate_cell((7*longueur)+10);
+
+		activate_deactivate_cell((4*longueur)+5);
+		activate_deactivate_cell((5*longueur)+5);
+		activate_deactivate_cell((6*longueur)+5);
+		activate_deactivate_cell((7*longueur)+5);
+
+
+		activate_deactivate_cell((6*longueur)+12);
+		activate_deactivate_cell((6*longueur)+13);
+		activate_deactivate_cell((7*longueur)+12);
+		activate_deactivate_cell((7*longueur)+13);
+
+
+		activate_deactivate_cell((4*longueur)+2);
+		activate_deactivate_cell((4*longueur)+3);
+		activate_deactivate_cell((5*longueur)+2);
+		activate_deactivate_cell((5*longueur)+3);
+
+		activate_deactivate_cell((10*longueur)+6);
+		activate_deactivate_cell((10*longueur)+7);
+		activate_deactivate_cell((11*longueur)+6);
+		activate_deactivate_cell((11*longueur)+7);
+
+		activate_deactivate_cell((5*longueur)+7);
+		activate_deactivate_cell((5*longueur)+8);
+		activate_deactivate_cell((6*longueur)+9);
+	}
+	generate_game();
+	$(document).ready(function(){
+		    activate_deactivate_cell((0*longueur)+2);
+		    activate_deactivate_cell((1*longueur)+2);
+		    activate_deactivate_cell((2*longueur)+2);
+		    activate_deactivate_cell((1*longueur)+0);
+		    activate_deactivate_cell((2*longueur)+1);
+
+		    activate_deactivate_cell(((longueur-3)*longueur)+0);
+		    activate_deactivate_cell(((longueur-3)*longueur)+1);
+		    activate_deactivate_cell(((longueur-3)*longueur)+2);
+		    activate_deactivate_cell(((longueur-2)*longueur)+2);
+		    activate_deactivate_cell(((longueur-1)*longueur)+1);
+		    
+		    $('#play').click(function(e) {
+		    	play();
+		    });
+		    $('#reset').click(function(e) {
+		    	reset();
+		    });
+		    $('#draw_one').click(function(e) {
+		    	draw_one();
+		    });
+		    $('#draw_two').click(function(e) {
+		    	draw_two();
+		    });
+		    $('#draw_three').click(function(e) {
+		    	draw_three();
+		    });
+		    $('#change_size').click(function(e) {
+		    	//alert($('#long').val());
+		    	$('#gameoflife').empty();
+		    	largeur=$('#long').val();
+		    	longueur=$('#larg').val();
+		    	alert(longueur);
+		    	alert(largeur)
+		    	generate_game();
+		    	//var two_dim_array = construct_array();
+				//var array_n_plus_onee = array_n_plus_one(two_dim_array);
+		    });
+	});
+	</script>
+</html>
